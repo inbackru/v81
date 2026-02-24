@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Партнёрская программа | InBack{% endblock %}
+
+{% block content %}
+<style>
+.partner-hero {
+    background: linear-gradient(135deg, #0088CC 0%, #006699 100%);
+}
+.stat-card {
+    transition: transform 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+.copy-toast {
+    animation: fadeInUp 0.3s ease forwards;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="min-h-screen bg-gray-50">
+    <div class="partner-hero text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+        <div class="absolute top-1/2 right-1/4 w-32 h-32 bg-white/5 rounded-full"></div>
+
+        <div class="max-w-5xl mx-auto px-4 py-8 md:py-12 relative z-10">
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{{ url_for('dashboard') }}" class="flex items-center gap-2 text-white/80 hover:text-white transition-colors text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Личный кабинет
+                </a>
+            </div>
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                            <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold">Партнёрская программа</h1>
+                            <p class="text-white/80 text-sm">Приглашайте друзей — получайте бонусы</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 md:min-w-[280px]">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-xl font-bold text-white">₽</span>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-bold">20 000 ₽</p>
+                            <p class="text-white/80 text-sm">за каждого приглашённого друга</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 -mt-6 relative z-20 pb-12">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="stat-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-[#0088CC]" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Приглашено друзей</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_referrals }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
+                        <span class="text-lg font-bold text-green-600">₽</span>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Заработано</p>
+                        <p class="text-2xl font-bold text-green-600">{{ '{:,.0f}'.format(total_earned).replace(',', ' ') }} ₽</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                            <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Баланс</p>
+                        <p class="text-2xl font-bold text-amber-600">{{ '{:,.0f}'.format(available_balance).replace(',', ' ') }} ₽</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ваша реферальная ссылка</h3>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-mono text-sm text-gray-700 truncate" id="referral-link-display">
+                    {{ referral_link }}
+                </div>
+                <button onclick="copyPartnerLink()" class="flex items-center justify-center gap-2 bg-[#0088CC] hover:bg-[#006699] text-white px-5 py-3 rounded-xl font-medium transition-colors flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                    </svg>
+                    <span id="copy-btn-text">Копировать</span>
+                </button>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4">
+                <a href="https://wa.me/?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%97%D0%B0%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B8%D1%80%D1%83%D0%B9%D1%81%D1%8F%20%D0%BF%D0%BE%20%D0%BC%D0%BE%D0%B5%D0%B9%20%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B5%20%D0%B8%20%D0%BF%D0%BE%D0%BB%D1%83%D1%87%D0%B8%20%D0%BA%D0%B5%D1%88%D0%B1%D1%8D%D0%BA%20%D0%BD%D0%B0%20%D0%BF%D0%BE%D0%BA%D1%83%D0%BF%D0%BA%D1%83%20%D0%BA%D0%B2%D0%B0%D1%80%D1%82%D0%B8%D1%80%D1%8B!%20{{ referral_link | urlencode }}" target="_blank" class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    WhatsApp
+                </a>
+                <a href="https://t.me/share/url?url={{ referral_link | urlencode }}&text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%97%D0%B0%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B8%D1%80%D1%83%D0%B9%D1%81%D1%8F%20%D0%BF%D0%BE%20%D0%BC%D0%BE%D0%B5%D0%B9%20%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B5%20%D0%B8%20%D0%BF%D0%BE%D0%BB%D1%83%D1%87%D0%B8%20%D0%BA%D0%B5%D1%88%D0%B1%D1%8D%D0%BA!" target="_blank" class="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    Telegram
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Как это работает</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center p-5 bg-blue-50 rounded-xl">
+                    <div class="w-12 h-12 bg-[#0088CC] rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-white font-bold text-lg">1</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-1">Поделитесь ссылкой</h4>
+                    <p class="text-sm text-gray-600">Отправьте вашу реферальную ссылку друзьям и знакомым</p>
+                </div>
+                <div class="text-center p-5 bg-blue-50 rounded-xl">
+                    <div class="w-12 h-12 bg-[#0088CC] rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-white font-bold text-lg">2</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-1">Друг регистрируется</h4>
+                    <p class="text-sm text-gray-600">Ваш друг переходит по ссылке и создаёт аккаунт на платформе</p>
+                </div>
+                <div class="text-center p-5 bg-green-50 rounded-xl">
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-white font-bold text-lg">3</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-1">Получите 20 000 ₽</h4>
+                    <p class="text-sm text-gray-600">Бонус автоматически зачисляется на ваш баланс</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Ваши приглашения</h3>
+                {% if total_referrals > 0 %}
+                <span class="text-sm text-gray-500">Всего: {{ total_referrals }}</span>
+                {% endif %}
+            </div>
+            {% if referrals %}
+            <div class="space-y-3">
+                {% for ref in referrals %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-[#0088CC]/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-[#0088CC]" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">{{ ref.referred_name }}</p>
+                            {% if ref.referred_phone %}
+                            <p class="text-sm text-gray-500">{{ ref.referred_phone }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-600">+{{ '{:,.0f}'.format(ref.bonus_amount).replace(',', ' ') }} ₽</p>
+                        <p class="text-xs text-gray-400">{{ ref.created_at }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-10">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                    </svg>
+                </div>
+                <p class="text-gray-500 mb-1">Пока нет приглашений</p>
+                <p class="text-sm text-gray-400">Поделитесь ссылкой с друзьями и начните зарабатывать</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-50 to-sky-50 rounded-2xl border border-blue-100 p-5 md:p-6">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-[#0088CC]/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg class="w-5 h-5 text-[#0088CC]" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Условия партнёрской программы</h4>
+                    <ul class="text-sm text-gray-600 space-y-1.5">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Бонус 20 000 ₽ начисляется сразу после регистрации друга
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Количество приглашений не ограничено
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Бонусы можно использовать для уменьшения стоимости сделки
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            У каждого пользователя своя уникальная реферальная ссылка
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyPartnerLink() {
+    var link = document.getElementById('referral-link-display').textContent.trim();
+    navigator.clipboard.writeText(link).then(function() {
+        var btn = document.getElementById('copy-btn-text');
+        btn.textContent = 'Скопировано!';
+        setTimeout(function() {
+            btn.textContent = 'Копировать';
+        }, 2000);
+    }).catch(function() {
+        var input = document.createElement('input');
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        var btn = document.getElementById('copy-btn-text');
+        btn.textContent = 'Скопировано!';
+        setTimeout(function() {
+            btn.textContent = 'Копировать';
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

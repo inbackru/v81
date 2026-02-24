@@ -1,0 +1,833 @@
+{% extends "base.html" %}
+
+{% block title %}Партнёрский кабинет | InBack{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() if csrf_token else 'no-token' }}">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<style>
+header, #topContactBar {
+    display: none !important;
+}
+body {
+    padding-top: 0 !important;
+}
+#mobileBottomNav {
+    display: none !important;
+}
+@media (max-width: 767px) {
+    body > footer, body > .footer, #footer-section, footer {
+        display: none !important;
+    }
+}
+
+.partner-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    background: white;
+    border-right: 1px solid #e5e7eb;
+    z-index: 40;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+@media (max-width: 767px) {
+    .partner-sidebar {
+        display: none !important;
+    }
+}
+
+.partner-main {
+    margin-left: 260px;
+    min-height: 100vh;
+    background: #f3f4f6;
+}
+@media (max-width: 767px) {
+    .partner-main {
+        margin-left: 0;
+    }
+}
+
+.partner-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #6b7280;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+.partner-tab-btn:hover {
+    background: #f9fafb;
+    color: #374151;
+}
+.partner-tab-btn.active {
+    color: #0088CC;
+    background: #f0f9ff;
+    border-left-color: #0088CC;
+}
+
+.partner-content-section {
+    display: none;
+}
+.partner-content-section.active {
+    display: block;
+}
+
+.partner-mobile-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.partner-mobile-tab.active {
+    color: #0088CC;
+    border-bottom-color: #0088CC;
+}
+
+.partner-stat-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #f3f4f6;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.partner-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.partner-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.partner-table th {
+    background: #f9fafb;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+}
+.partner-table td {
+    padding: 12px 16px;
+    font-size: 0.875rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+.partner-table tr:hover td {
+    background: #f9fafb;
+}
+
+@media (max-width: 767px) {
+    .partner-stat-card {
+        padding: 0.875rem;
+        border-radius: 0.875rem;
+    }
+    .partner-stat-card .text-2xl {
+        font-size: 1.125rem;
+    }
+    .partner-stat-card .text-sm {
+        font-size: 0.75rem;
+    }
+    .partner-table th, .partner-table td {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
+    .partner-content-section {
+        padding-bottom: 80px;
+    }
+}
+
+.copy-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1f2937;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 9999;
+    pointer-events: none;
+}
+.copy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.structure-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+}
+.structure-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+</style>
+
+<div class="partner-sidebar">
+    <div class="p-5 border-b border-gray-100">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background: linear-gradient(135deg, #0088CC, #006699);">
+                {{ partner.name[0] if partner.name else 'П' }}
+            </div>
+            <div>
+                <div class="font-semibold text-gray-800 text-sm">{{ partner.name }}</div>
+                <div class="text-xs text-gray-400">Партнёр</div>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 py-4">
+        <button class="partner-tab-btn active" data-tab="home-tab" onclick="switchTab('home-tab')">
+            <i class="fas fa-home w-5 text-center"></i>
+            <span>Главная</span>
+        </button>
+        <button class="partner-tab-btn" data-tab="referrals-tab" onclick="switchTab('referrals-tab')">
+            <i class="fas fa-users w-5 text-center"></i>
+            <span>Рефералы</span>
+        </button>
+        <button class="partner-tab-btn" data-tab="withdrawals-tab" onclick="switchTab('withdrawals-tab')">
+            <i class="fas fa-wallet w-5 text-center"></i>
+            <span>Выплаты</span>
+        </button>
+        <button class="partner-tab-btn" data-tab="structure-tab" onclick="switchTab('structure-tab')">
+            <i class="fas fa-sitemap w-5 text-center"></i>
+            <span>Структура</span>
+        </button>
+        <button class="partner-tab-btn" data-tab="conditions-tab" onclick="switchTab('conditions-tab')">
+            <i class="fas fa-file-alt w-5 text-center"></i>
+            <span>Условия</span>
+        </button>
+    </nav>
+    <div class="p-4 border-t border-gray-100">
+        <a href="/partner/logout" class="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 transition-colors">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Выйти</span>
+        </a>
+    </div>
+</div>
+
+<div class="partner-main">
+    <div class="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex items-center justify-between">
+        <h1 class="text-lg md:text-xl font-bold text-gray-800">Партнёрский кабинет</h1>
+        <div class="hidden md:flex items-center gap-4">
+            <span class="text-sm text-gray-500">{{ partner.name }}</span>
+            <a href="/partner/logout" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all">
+                <i class="fas fa-sign-out-alt"></i>
+                Выйти
+            </a>
+        </div>
+    </div>
+
+    <div class="md:hidden bg-white border-b border-gray-200 flex overflow-x-auto" style="scrollbar-width: none;">
+        <button class="partner-mobile-tab active" data-tab="home-tab" onclick="switchTab('home-tab')">
+            <i class="fas fa-home block text-base mb-0.5"></i>
+            Главная
+        </button>
+        <button class="partner-mobile-tab" data-tab="referrals-tab" onclick="switchTab('referrals-tab')">
+            <i class="fas fa-users block text-base mb-0.5"></i>
+            Рефералы
+        </button>
+        <button class="partner-mobile-tab" data-tab="withdrawals-tab" onclick="switchTab('withdrawals-tab')">
+            <i class="fas fa-wallet block text-base mb-0.5"></i>
+            Выплаты
+        </button>
+        <button class="partner-mobile-tab" data-tab="structure-tab" onclick="switchTab('structure-tab')">
+            <i class="fas fa-sitemap block text-base mb-0.5"></i>
+            Структура
+        </button>
+        <button class="partner-mobile-tab" data-tab="conditions-tab" onclick="switchTab('conditions-tab')">
+            <i class="fas fa-file-alt block text-base mb-0.5"></i>
+            Условия
+        </button>
+    </div>
+
+    <div class="p-4 md:p-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
+            <div class="partner-stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0, 136, 204, 0.1);">
+                        <i class="fas fa-ruble-sign" style="color: #0088CC;"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">{{ '{:,.0f}'.format(partner.balance|default(0)).replace(',', ' ') }} ₽</div>
+                <div class="text-sm text-gray-500 mt-1">Баланс</div>
+            </div>
+            <div class="partner-stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(16, 185, 129, 0.1);">
+                        <i class="fas fa-chart-line" style="color: #10b981;"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">{{ '{:,.0f}'.format(partner.total_earned|default(0)).replace(',', ' ') }} ₽</div>
+                <div class="text-sm text-gray-500 mt-1">Заработано</div>
+            </div>
+            <div class="partner-stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(245, 158, 11, 0.1);">
+                        <i class="fas fa-user-friends" style="color: #f59e0b;"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">{{ partner.total_referrals|default(0) }}</div>
+                <div class="text-sm text-gray-500 mt-1">Рефералы</div>
+            </div>
+            <div class="partner-stat-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(99, 102, 241, 0.1);">
+                        <i class="fas fa-star" style="color: #0088CC;"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-800">{{ partner.level|default(1) }}</div>
+                <div class="text-sm text-gray-500 mt-1">Уровень</div>
+            </div>
+        </div>
+
+        <div id="home-tab" class="partner-content-section active">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8 mb-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-link mr-2" style="color: #0088CC;"></i>
+                    Ваша реферальная ссылка
+                </h2>
+                <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                    <div class="flex-1 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 font-mono break-all border border-gray-200" id="referralLinkText">{{ referral_link }}</div>
+                    <button onclick="copyReferralLink()" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-medium text-sm transition-all hover:shadow-lg" style="background: linear-gradient(135deg, #0088CC, #006699);">
+                        <i class="fas fa-copy"></i>
+                        Копировать
+                    </button>
+                </div>
+                <div class="flex gap-3">
+                    <a href="https://wa.me/?text={{ referral_link }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all hover:shadow-lg" style="background: #25D366;">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                        WhatsApp
+                    </a>
+                    <a href="https://t.me/share/url?url={{ referral_link }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all hover:shadow-lg" style="background: #0088cc;">
+                        <i class="fab fa-telegram-plane text-lg"></i>
+                        Telegram
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-clock mr-2" style="color: #0088CC;"></i>
+                    Последние рефералы
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="partner-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Имя</th>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if partner.referrals %}
+                                {% for ref in partner.referrals[:5] %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td class="font-medium">{{ ref.name|default('—') }}</td>
+                                    <td>{{ ref.created_at.strftime('%d.%m.%Y') if ref.created_at else '—' }}</td>
+                                    <td>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if ref.status == 'active' %}bg-green-100 text-green-700{% elif ref.status == 'pending' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-600{% endif %}">
+                                            {{ ref.status|default('новый') }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-gray-400 py-8">
+                                        <i class="fas fa-users text-3xl mb-3 block text-gray-300"></i>
+                                        Пока нет рефералов. Поделитесь ссылкой!
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="referrals-tab" class="partner-content-section">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-users mr-2" style="color: #0088CC;"></i>
+                        Все рефералы
+                    </h2>
+                    <button onclick="loadReferrals()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-gray-100 text-gray-600">
+                        <i class="fas fa-sync-alt"></i>
+                        Обновить
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="partner-table" id="referralsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Имя</th>
+                                <th>Телефон</th>
+                                <th>Дата</th>
+                                <th>Бонус</th>
+                                <th>Статус</th>
+                                <th>Уровень</th>
+                            </tr>
+                        </thead>
+                        <tbody id="referralsTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center text-gray-400 py-8">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-2 block" style="color: #0088CC;"></i>
+                                    Загрузка...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="withdrawals-tab" class="partner-content-section">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+                    <h2 class="text-lg font-bold text-gray-800 mb-2">
+                        <i class="fas fa-wallet mr-2" style="color: #0088CC;"></i>
+                        Доступно к выводу
+                    </h2>
+                    <div class="text-3xl font-bold mt-4 mb-6" style="color: #0088CC;">{{ '{:,.0f}'.format(partner.balance|default(0)).replace(',', ' ') }} ₽</div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">
+                        <i class="fas fa-money-bill-wave mr-2" style="color: #0088CC;"></i>
+                        Запрос на вывод
+                    </h2>
+                    <form id="withdrawalForm" onsubmit="submitWithdrawal(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Сумма вывода (₽)</label>
+                            <input type="number" name="amount" id="withdrawAmount" min="1000" step="100" required
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm"
+                                placeholder="Минимум 1 000 ₽" style="--tw-ring-color: rgba(0, 136, 204, 0.2); border-color: #e5e7eb;" onfocus="this.style.borderColor='#0088CC'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Способ оплаты</label>
+                            <select name="payment_method" id="paymentMethod" required
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm appearance-none bg-white"
+                                onfocus="this.style.borderColor='#0088CC'" onblur="this.style.borderColor='#e5e7eb'">
+                                <option value="">Выберите способ</option>
+                                <option value="card">Банковская карта</option>
+                                <option value="sbp">СБП</option>
+                            </select>
+                        </div>
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Реквизиты для оплаты</label>
+                            <textarea name="payment_details" id="paymentDetails" rows="3" required
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm resize-none"
+                                placeholder="Номер карты или телефон для СБП"
+                                onfocus="this.style.borderColor='#0088CC'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                        </div>
+                        <button type="submit" id="withdrawSubmitBtn" class="w-full py-3 rounded-xl text-white font-medium text-sm transition-all hover:shadow-lg" style="background: linear-gradient(135deg, #0088CC, #006699);">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Отправить запрос
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-history mr-2" style="color: #0088CC;"></i>
+                        История выплат
+                    </h2>
+                    <button onclick="loadWithdrawals()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-gray-100 text-gray-600">
+                        <i class="fas fa-sync-alt"></i>
+                        Обновить
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="partner-table" id="withdrawalsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Сумма</th>
+                                <th>Способ</th>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawalsTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center text-gray-400 py-8">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-2 block" style="color: #0088CC;"></i>
+                                    Загрузка...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="structure-tab" class="partner-content-section">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-sitemap mr-2" style="color: #0088CC;"></i>
+                        Структура команды
+                    </h2>
+                    <button onclick="loadStructure()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-gray-100 text-gray-600">
+                        <i class="fas fa-sync-alt"></i>
+                        Обновить
+                    </button>
+                </div>
+                <div id="structureContent">
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2 block" style="color: #0088CC;"></i>
+                        Загрузка структуры...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="conditions-tab" class="partner-content-section">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+                <h2 class="text-lg font-bold text-gray-800 mb-6">
+                    <i class="fas fa-file-alt mr-2" style="color: #0088CC;"></i>
+                    Условия партнёрской программы
+                </h2>
+
+                <div class="space-y-6">
+                    <div class="rounded-xl p-5 border border-gray-100" style="background: linear-gradient(135deg, rgba(0, 136, 204, 0.05), rgba(0, 102, 153, 0.05));">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(0, 136, 204, 0.1);">
+                                <i class="fas fa-gift text-lg" style="color: #0088CC;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Бонус за реферала</h3>
+                                <p class="text-gray-600 text-sm leading-relaxed">За каждого привлечённого клиента, который оформит сделку, вы получаете бонус <strong style="color: #0088CC;">20 000 ₽</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl p-5 border border-gray-100" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05));">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(16, 185, 129, 0.1);">
+                                <i class="fas fa-layer-group text-lg" style="color: #10b981;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Многоуровневая система</h3>
+                                <p class="text-gray-600 text-sm leading-relaxed">Получайте бонусы не только за прямых рефералов, но и за рефералов ваших партнёров (2-й уровень).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl p-5 border border-gray-100" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.05));">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(245, 158, 11, 0.1);">
+                                <i class="fas fa-money-bill-wave text-lg" style="color: #f59e0b;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Правила вывода</h3>
+                                <p class="text-gray-600 text-sm leading-relaxed">Минимальная сумма вывода — <strong>1 000 ₽</strong>. Выплаты осуществляются на банковскую карту или через СБП в течение 3-5 рабочих дней.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl p-5 border border-gray-100" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(79, 70, 229, 0.05));">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(0, 136, 204, 0.1);">
+                                <i class="fas fa-shield-alt text-lg" style="color: #0088CC;"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 mb-1">Общие условия</h3>
+                                <ul class="text-gray-600 text-sm leading-relaxed space-y-2 mt-2">
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle mt-0.5 flex-shrink-0" style="color: #0088CC;"></i>
+                                        Бонус начисляется после завершения сделки клиентом
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle mt-0.5 flex-shrink-0" style="color: #0088CC;"></i>
+                                        Реферальная ссылка действует бессрочно
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle mt-0.5 flex-shrink-0" style="color: #0088CC;"></i>
+                                        Количество рефералов не ограничено
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle mt-0.5 flex-shrink-0" style="color: #0088CC;"></i>
+                                        Статистика обновляется в реальном времени
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle mt-0.5 flex-shrink-0" style="color: #0088CC;"></i>
+                                        Поддержка партнёров доступна через чат
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="copy-toast" id="copyToast">Ссылка скопирована!</div>
+
+<script>
+function getCSRFToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.partner-content-section').forEach(function(s) {
+        s.classList.remove('active');
+    });
+    document.querySelectorAll('.partner-tab-btn, .partner-mobile-tab').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    var el = document.getElementById(tabId);
+    if (el) el.classList.add('active');
+    document.querySelectorAll('[data-tab="' + tabId + '"]').forEach(function(b) {
+        b.classList.add('active');
+    });
+    if (tabId === 'referrals-tab') loadReferrals();
+    if (tabId === 'withdrawals-tab') loadWithdrawals();
+    if (tabId === 'structure-tab') loadStructure();
+}
+
+function copyReferralLink() {
+    var linkText = document.getElementById('referralLinkText').textContent.trim();
+    navigator.clipboard.writeText(linkText).then(function() {
+        var toast = document.getElementById('copyToast');
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, 2000);
+    }).catch(function() {
+        var input = document.createElement('textarea');
+        input.value = linkText;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        var toast = document.getElementById('copyToast');
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, 2000);
+    });
+}
+
+function maskPhone(phone) {
+    if (!phone) return '—';
+    var p = phone.replace(/\D/g, '');
+    if (p.length < 4) return phone;
+    return p.substring(0, 2) + '***' + p.substring(p.length - 2);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    var d = new Date(dateStr);
+    return d.toLocaleDateString('ru-RU');
+}
+
+function statusBadge(status) {
+    var colors = {
+        'active': 'bg-green-100 text-green-700',
+        'pending': 'bg-yellow-100 text-yellow-700',
+        'completed': 'bg-green-100 text-green-700',
+        'rejected': 'bg-red-100 text-red-700',
+        'processing': 'bg-blue-100 text-blue-700'
+    };
+    var cls = colors[status] || 'bg-gray-100 text-gray-600';
+    return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + cls + '">' + (status || 'новый') + '</span>';
+}
+
+function loadReferrals() {
+    var tbody = document.getElementById('referralsTableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block" style="color: #0088CC;"></i>Загрузка...</td></tr>';
+    fetch('/partner/api/referrals', {
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var referrals = data.referrals || data || [];
+        if (!Array.isArray(referrals)) referrals = [];
+        if (referrals.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 py-8"><i class="fas fa-users text-3xl mb-3 block text-gray-300"></i>Нет рефералов</td></tr>';
+            return;
+        }
+        var html = '';
+        referrals.forEach(function(ref, i) {
+            html += '<tr>';
+            html += '<td>' + (i + 1) + '</td>';
+            html += '<td class="font-medium">' + (ref.name || '—') + '</td>';
+            html += '<td>' + maskPhone(ref.phone) + '</td>';
+            html += '<td>' + formatDate(ref.created_at || ref.date) + '</td>';
+            html += '<td class="font-medium" style="color: #0088CC;">' + (ref.bonus ? ref.bonus.toLocaleString('ru-RU') + ' ₽' : '—') + '</td>';
+            html += '<td>' + statusBadge(ref.status) + '</td>';
+            html += '<td>' + (ref.level || 1) + '</td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+    })
+    .catch(function() {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-red-400 py-8"><i class="fas fa-exclamation-triangle text-2xl mb-2 block"></i>Ошибка загрузки</td></tr>';
+    });
+}
+
+function loadWithdrawals() {
+    var tbody = document.getElementById('withdrawalsTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block" style="color: #0088CC;"></i>Загрузка...</td></tr>';
+    fetch('/partner/api/withdrawals', {
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var withdrawals = data.withdrawals || data || [];
+        if (!Array.isArray(withdrawals)) withdrawals = [];
+        if (withdrawals.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-8"><i class="fas fa-money-bill-wave text-3xl mb-3 block text-gray-300"></i>Нет выплат</td></tr>';
+            return;
+        }
+        var methods = { 'card': 'Карта', 'sbp': 'СБП' };
+        var html = '';
+        withdrawals.forEach(function(w, i) {
+            html += '<tr>';
+            html += '<td>' + (i + 1) + '</td>';
+            html += '<td class="font-medium">' + (w.amount ? w.amount.toLocaleString('ru-RU') + ' ₽' : '—') + '</td>';
+            html += '<td>' + (methods[w.payment_method] || w.payment_method || '—') + '</td>';
+            html += '<td>' + formatDate(w.created_at || w.date) + '</td>';
+            html += '<td>' + statusBadge(w.status) + '</td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+    })
+    .catch(function() {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-400 py-8"><i class="fas fa-exclamation-triangle text-2xl mb-2 block"></i>Ошибка загрузки</td></tr>';
+    });
+}
+
+function loadStructure() {
+    var container = document.getElementById('structureContent');
+    container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block" style="color: #0088CC;"></i>Загрузка структуры...</div>';
+    fetch('/partner/api/structure', {
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var structure = data.structure || data || [];
+        if (!Array.isArray(structure) || structure.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-sitemap text-3xl mb-3 block text-gray-300"></i><p>Структура пуста. Привлекайте рефералов!</p></div>';
+            return;
+        }
+        var html = '';
+        html += '<div class="mb-6"><h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4"><i class="fas fa-user-friends mr-2" style="color: #0088CC;"></i>Уровень 1 — Прямые рефералы</h3>';
+        html += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">';
+        structure.forEach(function(person) {
+            html += '<div class="structure-card">';
+            html += '<div class="flex items-center gap-3 mb-3">';
+            html += '<div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background: linear-gradient(135deg, #0088CC, #006699);">' + (person.name ? person.name[0].toUpperCase() : '?') + '</div>';
+            html += '<div><div class="font-semibold text-gray-800 text-sm">' + (person.name || '—') + '</div>';
+            html += '<div class="text-xs text-gray-400">' + formatDate(person.created_at || person.date) + '</div></div>';
+            html += '</div>';
+            if (person.referrals && person.referrals.length > 0) {
+                html += '<div class="ml-4 pl-4 border-l-2 mt-3" style="border-color: #e5e7eb;">';
+                html += '<div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Уровень 2</div>';
+                person.referrals.forEach(function(sub) {
+                    html += '<div class="flex items-center gap-2 py-1.5">';
+                    html += '<div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background: #10b981;">' + (sub.name ? sub.name[0].toUpperCase() : '?') + '</div>';
+                    html += '<span class="text-sm text-gray-600">' + (sub.name || '—') + '</span>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+        });
+        html += '</div></div>';
+        container.innerHTML = html;
+    })
+    .catch(function() {
+        container.innerHTML = '<div class="text-center text-red-400 py-8"><i class="fas fa-exclamation-triangle text-2xl mb-2 block"></i>Ошибка загрузки структуры</div>';
+    });
+}
+
+function submitWithdrawal(e) {
+    e.preventDefault();
+    var btn = document.getElementById('withdrawSubmitBtn');
+    var amount = document.getElementById('withdrawAmount').value;
+    var method = document.getElementById('paymentMethod').value;
+    var details = document.getElementById('paymentDetails').value;
+    if (!amount || !method || !details) {
+        alert('Заполните все поля');
+        return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Отправка...';
+    fetch('/partner/api/withdrawal', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            amount: parseFloat(amount),
+            payment_method: method,
+            payment_details: details
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Отправить запрос';
+        if (data.success || data.status === 'ok') {
+            document.getElementById('withdrawalForm').reset();
+            var toast = document.getElementById('copyToast');
+            toast.textContent = 'Запрос на вывод отправлен!';
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); toast.textContent = 'Ссылка скопирована!'; }, 3000);
+            loadWithdrawals();
+        } else {
+            alert(data.error || data.message || 'Ошибка при отправке запроса');
+        }
+    })
+    .catch(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Отправить запрос';
+        alert('Ошибка сети. Попробуйте позже.');
+    });
+}
+</script>
+{% endblock %}
